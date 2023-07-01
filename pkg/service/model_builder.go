@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"github.com/go-logr/logr"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/aws/services"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 	"strconv"
 	"sync"
 
@@ -37,7 +40,10 @@ type ModelBuilder interface {
 func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver networking.SubnetsResolver,
 	vpcInfoProvider networking.VPCInfoProvider, vpcID string, trackingProvider tracking.Provider,
 	elbv2TaggingManager elbv2deploy.TaggingManager, featureGates config.FeatureGates, clusterName string, defaultTags map[string]string,
-	externalManagedTags []string, defaultSSLPolicy string, defaultTargetType string, enableIPTargetType bool, serviceUtils ServiceUtils) *defaultModelBuilder {
+	externalManagedTags []string, defaultSSLPolicy string, defaultTargetType string, enableIPTargetType bool, serviceUtils ServiceUtils,
+	acmClient services.ACM, logger logr.Logger) *DefaultModelBuilder {
+	certDiscovery := ingress.NewACMCertDiscovery(acmClient, logger)
+
 	return &defaultModelBuilder{
 		annotationParser:    annotationParser,
 		subnetsResolver:     subnetsResolver,
@@ -46,6 +52,7 @@ func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver
 		elbv2TaggingManager: elbv2TaggingManager,
 		featureGates:        featureGates,
 		serviceUtils:        serviceUtils,
+		certDiscovery:       certDiscovery,
 		clusterName:         clusterName,
 		vpcID:               vpcID,
 		defaultTags:         defaultTags,
@@ -53,6 +60,7 @@ func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver
 		defaultSSLPolicy:    defaultSSLPolicy,
 		defaultTargetType:   elbv2model.TargetType(defaultTargetType),
 		enableIPTargetType:  enableIPTargetType,
+		logger:              logger,
 	}
 }
 
@@ -66,6 +74,7 @@ type defaultModelBuilder struct {
 	elbv2TaggingManager elbv2deploy.TaggingManager
 	featureGates        config.FeatureGates
 	serviceUtils        ServiceUtils
+	certDiscovery       ingress.CertDiscovery
 
 	clusterName         string
 	vpcID               string
@@ -74,6 +83,7 @@ type defaultModelBuilder struct {
 	defaultSSLPolicy    string
 	defaultTargetType   elbv2model.TargetType
 	enableIPTargetType  bool
+	logger              logr.Logger
 }
 
 func (b *defaultModelBuilder) Build(ctx context.Context, service *corev1.Service) (core.Stack, *elbv2model.LoadBalancer, error) {
@@ -141,6 +151,7 @@ type defaultModelBuildTask struct {
 	featureGates        config.FeatureGates
 	serviceUtils        ServiceUtils
 	enableIPTargetType  bool
+	certDiscovery       ingress.CertDiscovery
 
 	service *corev1.Service
 
