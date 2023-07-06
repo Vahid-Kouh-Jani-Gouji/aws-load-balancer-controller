@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/go-logr/logr"
-	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 	"testing"
 	"time"
+
+	"github.com/go-logr/logr"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
