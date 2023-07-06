@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/go-logr/logr"
-	"sigs.k8s.io/aws-load-balancer-controller/pkg/aws/services"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -42,9 +41,7 @@ func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver
 	vpcInfoProvider networking.VPCInfoProvider, vpcID string, trackingProvider tracking.Provider,
 	elbv2TaggingManager elbv2deploy.TaggingManager, featureGates config.FeatureGates, clusterName string, defaultTags map[string]string,
 	externalManagedTags []string, defaultSSLPolicy string, defaultTargetType string, enableIPTargetType bool, serviceUtils ServiceUtils,
-	acmClient services.ACM, logger logr.Logger) *defaultModelBuilder {
-
-	certDiscovery := ingress.NewACMCertDiscovery(acmClient, logger)
+	certDiscovery ingress.CertDiscovery, logger logr.Logger) *defaultModelBuilder {
 
 	return &defaultModelBuilder{
 		annotationParser:    annotationParser,
