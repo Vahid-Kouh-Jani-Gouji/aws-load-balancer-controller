@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
-
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -17,6 +15,7 @@ import (
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/elbv2"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/tracking"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/k8s"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/model/core"
 	elbv2model "sigs.k8s.io/aws-load-balancer-controller/pkg/model/elbv2"

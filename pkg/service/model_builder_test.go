@@ -5,12 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-logr/logr"
-	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	elbv2sdk "github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -22,6 +20,7 @@ import (
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/elbv2"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/tracking"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/networking"
 )
 
