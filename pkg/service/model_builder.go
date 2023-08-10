@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -13,6 +14,7 @@ import (
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/config"
 	elbv2deploy "sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/elbv2"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/deploy/tracking"
+	"sigs.k8s.io/aws-load-balancer-controller/pkg/ingress"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/k8s"
 	"sigs.k8s.io/aws-load-balancer-controller/pkg/model/core"
 	elbv2model "sigs.k8s.io/aws-load-balancer-controller/pkg/model/elbv2"
@@ -37,7 +39,9 @@ type ModelBuilder interface {
 func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver networking.SubnetsResolver,
 	vpcInfoProvider networking.VPCInfoProvider, vpcID string, trackingProvider tracking.Provider,
 	elbv2TaggingManager elbv2deploy.TaggingManager, featureGates config.FeatureGates, clusterName string, defaultTags map[string]string,
-	externalManagedTags []string, defaultSSLPolicy string, defaultTargetType string, enableIPTargetType bool, serviceUtils ServiceUtils) *defaultModelBuilder {
+	externalManagedTags []string, defaultSSLPolicy string, defaultTargetType string, enableIPTargetType bool, serviceUtils ServiceUtils,
+	certDiscovery ingress.CertDiscovery, logger logr.Logger) *defaultModelBuilder {
+
 	return &defaultModelBuilder{
 		annotationParser:    annotationParser,
 		subnetsResolver:     subnetsResolver,
@@ -46,6 +50,7 @@ func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver
 		elbv2TaggingManager: elbv2TaggingManager,
 		featureGates:        featureGates,
 		serviceUtils:        serviceUtils,
+		certDiscovery:       certDiscovery,
 		clusterName:         clusterName,
 		vpcID:               vpcID,
 		defaultTags:         defaultTags,
@@ -53,6 +58,7 @@ func NewDefaultModelBuilder(annotationParser annotations.Parser, subnetsResolver
 		defaultSSLPolicy:    defaultSSLPolicy,
 		defaultTargetType:   elbv2model.TargetType(defaultTargetType),
 		enableIPTargetType:  enableIPTargetType,
+		logger:              logger,
 	}
 }
 
@@ -66,6 +72,7 @@ type defaultModelBuilder struct {
 	elbv2TaggingManager elbv2deploy.TaggingManager
 	featureGates        config.FeatureGates
 	serviceUtils        ServiceUtils
+	certDiscovery       ingress.CertDiscovery
 
 	clusterName         string
 	vpcID               string
@@ -74,6 +81,7 @@ type defaultModelBuilder struct {
 	defaultSSLPolicy    string
 	defaultTargetType   elbv2model.TargetType
 	enableIPTargetType  bool
+	logger              logr.Logger
 }
 
 func (b *defaultModelBuilder) Build(ctx context.Context, service *corev1.Service) (core.Stack, *elbv2model.LoadBalancer, error) {
@@ -141,6 +149,7 @@ type defaultModelBuildTask struct {
 	featureGates        config.FeatureGates
 	serviceUtils        ServiceUtils
 	enableIPTargetType  bool
+	certDiscovery       ingress.CertDiscovery
 
 	service *corev1.Service
 
