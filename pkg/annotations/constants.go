@@ -85,4 +85,10 @@ const (
 	SvcLBSuffixLoadBalancerAttributes        = "aws-load-balancer-attributes"
 	SvcLBSuffixLoadBalancerSecurityGroups    = "aws-load-balancer-security-groups"
 	SvcLBSuffixManageSGRules                 = "aws-load-balancer-manage-backend-security-group-rules"
+
+	// prefixes service.alpha.kubernetes.io, service.kubernetes.io
+	SvcLBSuffixEndpointServiceEnabled            = "aws-load-balancer-endpoint-service-enabled"
+	SvcLBSuffixEndpointServiceAcceptanceRequired = "aws-load-balancer-endpoint-service-acceptance-required"
+	SvcLBSuffixEndpointServiceAllowedPrincipals  = "aws-load-balancer-endpoint-service-allowed-principals"
+	SvcLBSuffixEndpointServicePrivateDNSName     = "aws-load-balancer-endpoint-service-private-dns-name"
 )
